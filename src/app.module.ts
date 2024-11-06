@@ -6,6 +6,8 @@ import { EnvConfiguration } from './config/env.config';
 import { JoiValidation } from './config/joi-validation.config';
 import { AuthModule } from './auth/auth.module';
 import { MoviesModule } from './movies/movies.module';
+import { SeedModule } from './seed/seed.module';
+
 
 @Module({
   imports: [
@@ -24,7 +26,8 @@ import { MoviesModule } from './movies/movies.module';
       synchronize: true,
     }),
     AuthModule,
-    MoviesModule
+    MoviesModule,
+    SeedModule
   ],
 })
 export class AppModule {}
