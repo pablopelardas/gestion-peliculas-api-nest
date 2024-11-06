@@ -1,7 +1,7 @@
 import { Reflector } from '@nestjs/core';
 import { CanActivate, ExecutionContext, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { Observable } from 'rxjs';
-import { META_ROLES } from 'src/auth/decorators';
+import { META_ROLES } from '../../decorators';
 
 @Injectable()
 export class UserRoleGuard implements CanActivate {
@@ -19,10 +19,6 @@ export class UserRoleGuard implements CanActivate {
     const user = request.user;
     if (!user) throw new InternalServerErrorException()
     const userRoles = user.roles;
-    console.log({
-      validRoles,
-      userRoles,
-    })
     return !!userRoles.some(role => validRoles.includes(role.name));
   }
 }

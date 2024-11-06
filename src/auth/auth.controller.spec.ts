@@ -1,9 +1,9 @@
+import { BadRequestException, ConflictException, UnauthorizedException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { ValidRoles } from './interfaces';
-import { BadRequestException, ConflictException, UnauthorizedException } from '@nestjs/common';
 import { LoginUserDto } from './dto/login-user.dto';
 
 describe('AuthController', () => {
