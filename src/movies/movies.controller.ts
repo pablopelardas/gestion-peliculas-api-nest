@@ -2,10 +2,16 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { MoviesService } from './movies.service';
 import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
+import { ValidRoles } from '../auth/interfaces';
+import { Auth } from '../auth/decorators/auth.decorator';
+import { MovieSyncService } from './services/movie-sync.service';
 
 @Controller('movies')
 export class MoviesController {
-  constructor(private readonly moviesService: MoviesService) {}
+  constructor(
+    private readonly moviesService: MoviesService,
+    private readonly movieSyncService: MovieSyncService,
+  ) {}
 
   @Post()
   create(@Body() createMovieDto: CreateMovieDto) {
@@ -30,5 +36,11 @@ export class MoviesController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.moviesService.remove(+id);
+  }
+
+  @Post('sync')
+  @Auth(ValidRoles.ADMIN)
+  async syncMovies() {
+    return this.movieSyncService.syncMovies();
   }
 }
