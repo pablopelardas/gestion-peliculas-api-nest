@@ -20,7 +20,7 @@ export class User {
   @ManyToMany(
     () => Role,
     (role: Role) => role.users,
-    {onDelete: 'NO ACTION', onUpdate: 'NO ACTION', cascade: true,})
+    {onDelete: 'NO ACTION', onUpdate: 'NO ACTION', cascade: true, eager: true})
   @JoinTable({
     name: 'users_roles',
     joinColumn: {
