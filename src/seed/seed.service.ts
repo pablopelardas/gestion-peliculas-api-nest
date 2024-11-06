@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Role, User } from '../auth/entities';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { initialData } from './data/seed.data';
 
 @Injectable()
@@ -11,17 +11,18 @@ export class SeedService {
     private readonly userRepository: Repository<User>,
     @InjectRepository(Role)
     private readonly roleRepository: Repository<Role>,
+    private dataSource: DataSource,
   ) {}
+
   async executeSeed() {
     await this.deleteTables();
-const roleEntities = await this.insertRoles();
+    const roleEntities = await this.insertRoles();
     await this.insertNewUsers(roleEntities);
-    return 'seed executed';
+    return 'Seed executed';
   }
 
   private async deleteTables() {
-      await this.userRepository.delete({});
-      await this.roleRepository.delete({});
+    await this.dataSource.query(`TRUNCATE TABLE users, roles RESTART IDENTITY CASCADE`);
   }
 
   private async insertRoles() {
@@ -33,10 +34,10 @@ const roleEntities = await this.insertRoles();
       });
     });
 
-
     await this.roleRepository.save(rolesEntities);
     return rolesEntities;
   }
+
   private async insertNewUsers(roleEntities: Role[]) {
     const users = initialData.users;
 
@@ -49,6 +50,5 @@ const roleEntities = await this.insertRoles();
     });
 
     await this.userRepository.save(usersEntities);
-
   }
 }
