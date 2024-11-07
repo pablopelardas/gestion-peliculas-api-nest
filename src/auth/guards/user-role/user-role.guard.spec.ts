@@ -1,5 +1,5 @@
 import { Reflector } from '@nestjs/core';
-import { ExecutionContext, InternalServerErrorException } from '@nestjs/common';
+import { ExecutionContext, ForbiddenException, InternalServerErrorException } from '@nestjs/common';
 import { UserRoleGuard } from './user-role.guard';
 
 describe('UserRoleGuard', () => {
@@ -35,9 +35,9 @@ describe('UserRoleGuard', () => {
     expect(userRoleGuard.canActivate(context)).toBe(true);
   });
 
-  it('should return false if user does not have the required roles', () => {
+  it('should throw ForbiddenException if user does not have the required roles', () => {
     const context = mockExecutionContext(['admin'], [{ name: 'user' }]);
-    expect(userRoleGuard.canActivate(context)).toBe(false);
+    expect(() => userRoleGuard.canActivate(context)).toThrow(ForbiddenException);
   });
 
   it('should throw InternalServerErrorException if no user is found', () => {
@@ -60,6 +60,7 @@ describe('UserRoleGuard', () => {
 
   it('should return false if user has no matching roles', () => {
     const context = mockExecutionContext(['admin', 'manager'], [{ name: 'user' }]);
-    expect(userRoleGuard.canActivate(context)).toBe(false);
+    expect(() => userRoleGuard.canActivate(context)).toThrow(ForbiddenException);
   });
+
 });

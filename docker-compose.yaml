@@ -13,3 +13,15 @@ services:
       - "5432:5432"
     volumes:
       - ./postgres:/var/lib/postgresql/data
+  db-test:
+    image: postgres:14.3
+    restart: always
+    container_name: postgres-gpa-test
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}_test
+    ports:
+      - "5433:5432"
+    volumes:
+      - ./postgres-test:/var/lib/postgresql/data

@@ -1,90 +1,69 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { getRepositoryToken } from '@nestjs/typeorm';
+import { TypeOrmModule, getRepositoryToken } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import * as request from 'supertest';
+import * as bcrypt from 'bcrypt';
 import { AuthModule } from '../src/auth/auth.module';
-import { Role, User } from '../src/auth/entities';
-import { JwtStrategy } from '../src/auth/strategies/jwt.strategy';
-import { JwtService } from '@nestjs/jwt';
-
-const validRoles = [
-  'admin',
-  'user',
-];
-
-const users: User[] = [];
+import { User } from '../src/auth/entities';
+import { Role } from '../src/auth/entities';
+import { EnvConfiguration } from '../src/config/env.config';
 
 describe('AuthController (e2e)', () => {
   let app: INestApplication;
-  const mockUserRepository = {
-    findOne: jest.fn().mockImplementation(({ where: { email: user } }) => {
-      const userDb = users.find((u) => u.email === user);
-      if (!userDb) return null;
-      return Promise.resolve({
-        id: userDb.id,
-        email: userDb.email,
-        roles: userDb.roles,
-        password: userDb.password,
-      });
-    }),
-    create: jest.fn().mockImplementation((user) => {
-      return {
-        ...user,
-        roles: []
-      };
-    }),
-    save: jest.fn().mockImplementation((user) => {
-      if (users.find((u) => u.email === user.email)) {
-        return Promise.reject({
-          code: '23505',
-          detail: 'Key (email)=(user@example.com) already exists.',
-        });
-      }
-      user.id = '2d6a6b00-170d-4980-bad6-e884a37f5d71';
-      users.push(user);
-
-      return Promise.resolve({
-        ...user,
-      });
-    }),
-  };
-  const mockRoleRepository = {
-    findOneBy: jest.fn().mockImplementation((role) => {
-      if (!validRoles.includes(role.name)) return null;
-      return { id: 'uuid', name: role.name };
-    }),
-    save: jest.fn(),
-  };
+  let userRepository: Repository<User>;
+  let roleRepository: Repository<Role>;
 
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
-      providers: [JwtStrategy, JwtService],
-      imports: [AuthModule, ConfigModule],
-    })
-      .overrideProvider(JwtStrategy)
-      .useValue({
-        validate: jest.fn().mockImplementation((payload) => {
-          return {
-            id: payload.id,
-            email: payload.email,
-            roles: payload.roles,
-          };
+      imports: [
+        ConfigModule.forRoot({
+          load: [EnvConfiguration],
+          envFilePath: '.env.test', // Indicar que se use el archivo .env.test
         }),
-      })
-      .overrideProvider(JwtService)
-      .useValue({
-        sign: jest.fn().mockImplementation(() => {
-          return 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c';
+        TypeOrmModule.forRoot({
+          type: 'postgres',
+          host: EnvConfiguration().dbHost,
+          port: +EnvConfiguration().dbPort,
+          username: EnvConfiguration().dbUser,
+          password: EnvConfiguration().dbPassword,
+          database: EnvConfiguration().dbName,
+          autoLoadEntities: true,
+          synchronize: true, // Sincronizar automáticamente durante las pruebas
+          dropSchema: true, // Eliminar el esquema después de cada prueba para garantizar una base limpia
+          entities: [User, Role],
         }),
-      })
-      .overrideProvider(getRepositoryToken(User)).useValue(mockUserRepository)
-      .overrideProvider(getRepositoryToken(Role)).useValue(mockRoleRepository)
-      .compile();
+        AuthModule,
+      ],
+    }).compile();
 
     app = moduleFixture.createNestApplication();
     app.useGlobalPipes(new ValidationPipe());
     await app.init();
+
+    userRepository = moduleFixture.get<Repository<User>>(getRepositoryToken(User));
+    roleRepository = moduleFixture.get<Repository<Role>>(getRepositoryToken(Role));
+
+    // Insert roles in the database
+    const adminRole = roleRepository.create({ name: 'admin' });
+    const userRole = roleRepository.create({ name: 'user' });
+    await roleRepository.save([adminRole, userRole]);
+
+    // Insert user in the database
+    const user = userRepository.create({
+      email: 'user@example.com',
+      password: bcrypt.hashSync('User123', 10), // Contraseña encriptada
+      fullName: 'User Name',
+      roles: [adminRole, userRole],
+    });
+    await userRepository.save(user);
+  });
+
+  afterEach(async () => {
+    if (app) {
+      await app.close();
+    }
   });
 
   describe('/auth/register (POST)', () => {
@@ -92,10 +71,10 @@ describe('AuthController (e2e)', () => {
       return request(app.getHttpServer())
         .post('/auth/register')
         .send({
-          email: 'user@example.com',
-          password: 'User123',
-          fullName: 'User Name',
-          roles: [validRoles[0], validRoles[1]],
+          email: 'newuser@example.com',
+          password: 'NewUser123',
+          fullName: 'New User',
+          roles: ['admin', 'user'],
         })
         .expect(201);
     });
@@ -106,7 +85,7 @@ describe('AuthController (e2e)', () => {
           email: 'user@example.com',
           password: 'User123',
           fullName: 'User Name',
-          roles: [validRoles[0], validRoles[1]],
+          roles: ['admin', 'user'],
         })
         .expect(409);
 
@@ -140,19 +119,18 @@ describe('AuthController (e2e)', () => {
         })
         .expect(200);
 
-      expect(response.body).toEqual({
-        id: '2d6a6b00-170d-4980-bad6-e884a37f5d71',
-        email: 'user@example.com',
-        roles: ['admin','user'],
-        token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c',
-      });
+      expect(response.body).toHaveProperty('id');
+      expect(response.body).toHaveProperty('email', 'user@example.com');
+      expect(response.body).toHaveProperty('roles', expect.arrayContaining(['admin', 'user']));
+      expect(response.body).toHaveProperty('token');
     });
+
     it('should return 401 if invalid email or password is provided', async () => {
       const response = await request(app.getHttpServer())
         .post('/auth/login')
         .send({
           email: 'user@example.com',
-          password: 'invalidPassword',
+          password: 'InvalidPassword',
         })
         .expect(401);
 
@@ -178,6 +156,5 @@ describe('AuthController (e2e)', () => {
         message: 'Invalid email or password',
       });
     });
-
   });
 });

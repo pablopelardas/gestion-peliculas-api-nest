@@ -1,12 +1,17 @@
 import { Reflector } from '@nestjs/core';
-import { CanActivate, ExecutionContext, Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  CanActivate,
+  ExecutionContext,
+  ForbiddenException,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { META_ROLES } from '../../decorators';
 
 @Injectable()
 export class UserRoleGuard implements CanActivate {
   constructor(private readonly reflector: Reflector) {}
-
   canActivate(
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
@@ -19,6 +24,9 @@ export class UserRoleGuard implements CanActivate {
     const user = request.user;
     if (!user) throw new InternalServerErrorException()
     const userRoles = user.roles;
-    return !!userRoles.some(role => validRoles.includes(role.name));
+    if (!userRoles.some((role) => validRoles.includes(role.name))) {
+      throw new ForbiddenException('Forbidden');
+    }
+    return true;
   }
 }

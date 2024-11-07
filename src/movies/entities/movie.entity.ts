@@ -52,26 +52,20 @@ export class Movie {
     description: 'Movie created date',
     example: '2023-01-01T00:00:00.000Z',
   })
-  @CreateDateColumn({
-    type: 'timestamptz',
-  })
+  @CreateDateColumn()
   createdAt: Date;
 
   @ApiProperty({
     description: 'Movie updated date',
     example: '2023-01-01T00:00:00.000Z',
   })
-  @UpdateDateColumn({
-    type: 'timestamptz',
-  })
+  @UpdateDateColumn()
   updatedAt: Date;
 
   @ApiProperty({
     description: 'Movie deleted date',
     example: '2023-01-01T00:00:00.000Z',
   })
-  @DeleteDateColumn({
-    type: 'timestamptz',
-  })
+  @DeleteDateColumn()
   deletedAt: Date;
 }
