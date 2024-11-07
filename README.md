@@ -12,21 +12,23 @@
 
 API to manage movies using the [Star Wars API](https://swapi.dev/) as a base.
 
+### Temporal demo
+http://54.207.167.110:3000/api/movies
 
 ## Production Build
 
-1. Create the `.env.prod` file with the environment variables defined in the `.env.template` file.
+1. Create the `.env` file with the environment variables defined in the `.env.template` file.
 2. Replace DB_HOST with container name:`postgres-gpa`
 2. Create the new Docker image
 
     ```bash
-    docker-compose -f docker-compose.prod.yaml --env-file .env.production.local up --build
+    docker-compose -f docker-compose.prod.yaml up --build
     ```
 
 3. To run the image
 
     ```bash
-    docker-compose -f docker-compose.prod.yaml --env-file .env.production.local up -d
+    docker-compose -f docker-compose.prod.yaml up -d
     ```
 4. Execute the seed to initialize users and roles
     ```http
@@ -50,49 +52,48 @@ API to manage movies using the [Star Wars API](https://swapi.dev/) as a base.
 
 ## Run in Development
 
-1. Clone the repository
-2. Run
+1. Run
 
     ```bash
-    yarn install
+    npm install
     ```
 
-3. Ensure Nest CLI is installed
+2. Ensure Nest CLI is installed
 
     ```bash
     npm install -g @nestjs/cli
     ```
 
-4. Start the databases (dev and test) with docker compose
+3. Start the databases (dev and test) with docker compose
 
     ```bash
     docker-compose up -d
     ```
 
-5. Set up environment variables by cloning the `.env.template` file
+4. Set up environment variables by cloning the `.env.template` file
 
     ```bash
     cp .env.template .env # Environment variables for development
     cp .env.template .env.test # Environment variables for testing
     ```
 
-6. Fill in the environment variables defined in the `.env` file. See [Env Variables](#env-variables) for more information.
-7. Run the application
+5. Fill in the environment variables defined in the `.env` file. See [Env Variables](#env-variables) for more information.
+6. Run the application
 
     ```bash
     npm run start:dev
     ```
 
-8. Run the seed to initialize users and roles
+7. Run the seed to initialize users and roles
 
     ```http
     http://localhost:3000/api/seed
     ```
-9. Access the API at
+8. Access the API at
     ```http
     http://localhost:3000/api
     ```
-10. Login with the following credentials
+9. Login with the following credentials
     ```
     email: admin@example.com
     password: Admin123
@@ -128,19 +129,19 @@ API to manage movies using the [Star Wars API](https://swapi.dev/) as a base.
 1. Run unit tests
 
     ```bash
-    yarn test
+    npm run test
     ```
 
 2. Run end-to-end (e2e) tests
 
     ```bash
-    yarn test:e2e
+    npm run test:e2e
     ```
 
 3. Run test coverage
 
     ```bash
-    yarn test:cov
+    npm run test:cov
     ```
 
 ## API Documentation
