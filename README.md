@@ -143,6 +143,14 @@ http://54.207.167.110:3000/api/movies
     ```bash
     npm run test:cov
     ```
+#### Unit Test Results
+![image](https://github.com/user-attachments/assets/f8c9bf6d-9ca1-41f3-a37a-ba8450a3a3a0)
+#### Integration Test Results
+![image](https://github.com/user-attachments/assets/417080f8-5e86-474a-b648-81d5c3c3d049)
+#### Test Coverage
+![image](https://github.com/user-attachments/assets/9353a15d-f22a-4d04-8204-6e6184cd3f4e)
+
+
 
 ## API Documentation
 
@@ -151,4 +159,7 @@ API documentation is available via Swagger. Once the application is running, you
 ```http
 http://localhost:3000/api
 ```
+
+![image](https://github.com/user-attachments/assets/0d6e01d5-3ca6-4741-8946-303447b331c5)
+
 
