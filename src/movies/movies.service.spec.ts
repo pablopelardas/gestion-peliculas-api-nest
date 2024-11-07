@@ -3,7 +3,12 @@ import { MoviesService } from './movies.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Movie } from './entities/movie.entity';
 import { Repository } from 'typeorm';
-import { ConflictException, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { CommonModule } from '../common/common.module';
 
@@ -25,6 +30,7 @@ describe('MoviesService', () => {
           count: jest.fn(),
           create: jest.fn(),
           save: jest.fn(),
+          preload: jest.fn(),
         }
       },
         {
@@ -248,6 +254,50 @@ describe('MoviesService', () => {
         opening: 'Opening Modified...',
         producer: 'Gary Kurtz, Rick McCallum',
       })).rejects.toThrow(InternalServerErrorException);
+    });
+  });
+  describe('update', () => {
+    it('should update a movie', async () => {
+      const movieMock = {
+        id: '2d6a6b00-170d-4980-bad6-e884a37f5d71',
+        title: 'A New Hope',
+        director: 'George Lucas',
+        releaseDate: '1977-05-25',
+        opening: 'Opening Modified...',
+        producer: 'Gary Kurtz, Rick McCallum',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        deletedAt: null,
+      };
+
+      jest.spyOn(movieRepository, 'preload').mockResolvedValue(movieMock);
+
+      jest.spyOn(movieRepository, 'save').mockResolvedValue(movieMock);
+
+      const response = await service.update('2d6a6b00-170d-4980-bad6-e884a37f5d71', {
+        title: 'A New Hope',
+        director: 'George Lucas',
+        releaseDate: '1977-05-25',
+        opening: 'Opening Modified...',
+        producer: 'Gary Kurtz, Rick McCallum',
+      });
+
+      expect(response.id).toBe('2d6a6b00-170d-4980-bad6-e884a37f5d71');
+      expect(response.title).toBe('A New Hope');
+      expect(response.director).toBe('George Lucas');
+      expect(response.releaseDate).toBe('1977-05-25');
+      expect(response.opening).toBe('Opening Modified...');
+    });
+    it('should throw BadRequestException if movie not found', async () => {
+      jest.spyOn(movieRepository, 'preload').mockRejectedValue(new BadRequestException('Movie not found'));
+
+      await expect(service.update('2d6a6b00-170d-4980-bad6-e884a37f5d71', {
+        title: 'A New Hope',
+        director: 'George Lucas',
+        releaseDate: '1977-05-25',
+        opening: 'Opening Modified...',
+        producer: 'Gary Kurtz, Rick McCallum',
+      })).rejects.toThrow(BadRequestException);
     });
   });
 });

@@ -3,6 +3,7 @@ import { MoviesController } from './movies.controller';
 import { MoviesService } from './movies.service';
 import { MovieSyncService } from './services/movie-sync.service';
 import {
+  BadRequestException,
   ConflictException,
   InternalServerErrorException,
   NotFoundException,
@@ -35,6 +36,7 @@ describe('MoviesController', () => {
             findAll: jest.fn(),
             count: jest.fn(),
             create: jest.fn(),
+            update: jest.fn(),
           },
         },
         ]
@@ -278,6 +280,48 @@ describe('MoviesController', () => {
         opening: 'Opening Modified...',
         producer: 'Gary Kurtz, Rick McCallum',
       })).rejects.toThrow(InternalServerErrorException);
+    });
+  });
+  describe('update', () => {
+    it('should call update method of MoviesService', async () => {
+      const updateSpy = jest.spyOn(moviesService, 'update').mockResolvedValue({
+        id: '2d6a6b00-170d-4980-bad6-e884a37f5d71',
+        title: 'A New Hope',
+        director: 'George Lucas',
+        releaseDate: '1977-05-25',
+        opening: 'Opening Modified...',
+        producer: 'Gary Kurtz, Rick McCallum',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        deletedAt: null,
+      });
+
+      await controller.update('2d6a6b00-170d-4980-bad6-e884a37f5d71', {
+        title: 'A New Hope',
+        director: 'George Lucas',
+        releaseDate: '1977-05-25',
+        opening: 'Opening Modified...',
+        producer: 'Gary Kurtz, Rick McCallum',
+      });
+      expect(updateSpy).toHaveBeenCalledWith('2d6a6b00-170d-4980-bad6-e884a37f5d71', {
+        title: 'A New Hope',
+        director: 'George Lucas',
+        releaseDate: '1977-05-25',
+        opening: 'Opening Modified...',
+        producer: 'Gary Kurtz, Rick McCallum',
+      });
+    });
+
+    it('should return BadRequest if movie not found', async () => {
+      jest.spyOn(moviesService, 'update').mockRejectedValue(new BadRequestException('Movie not found'));
+
+      await expect(controller.update('2d6a6b00-170d-4980-bad6-e884a37f5d71', {
+        title: 'A New Hope',
+        director: 'George Lucas',
+        releaseDate: '1977-05-25',
+        opening: 'Opening Modified...',
+        producer: 'Gary Kurtz, Rick McCallum',
+      })).rejects.toThrow(BadRequestException);
     });
   });
 });
