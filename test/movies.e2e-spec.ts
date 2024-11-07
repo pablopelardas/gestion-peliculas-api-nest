@@ -408,4 +408,123 @@ describe('MoviesController (e2e)', () => {
     });
 
   });
+  describe('/movies (POST)', () => {
+    it('should create a movie', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/movies')
+        .set('Authorization', `Bearer ${authTokenAdmin}`)
+        .send({
+          title: 'NEW MOVIE',
+          director: 'NEW DIRECTOR',
+          releaseDate: '1977-05-25',
+          opening: 'Opening Modified...',
+          producer: 'Gary Kurtz, Rick McCallum',
+        })
+        .expect(201);
+      expect(response.body).toHaveProperty('id');
+      expect(response.body).toHaveProperty('title', 'NEW MOVIE');
+      expect(response.body).toHaveProperty('director', 'NEW DIRECTOR');
+      expect(response.body).toHaveProperty('releaseDate', '1977-05-25');
+      expect(response.body).toHaveProperty('opening', 'Opening Modified...');
+      expect(response.body).toHaveProperty('producer', 'Gary Kurtz, Rick McCallum');
+    });
+    it('should return 409 if movie already exists', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/movies')
+        .set('Authorization', `Bearer ${authTokenAdmin}`)
+        .send({
+          title: 'The Matrix',
+          director: 'Andy Wachowski',
+          releaseDate: '1999-03-30',
+          opening: 'Opening Modified...',
+          producer: 'Gary Kurtz, Rick McCallum',
+        })
+        .expect(409);
+
+      expect(response.body).toEqual({
+        statusCode: 409,
+        error: 'Conflict',
+        message: 'Key (title, director)=(The Matrix, Andy Wachowski) already exists.',
+      });
+    });
+    it('should return 409 if movie already exists and is deleted', async () => {
+      const movieRepository = app.get<Repository<Movie>>(getRepositoryToken(Movie));
+      const deletedMovie = await movieRepository.findOne({
+        where: {
+          title: 'A New Hope',
+        },
+        withDeleted: true,
+      });
+      expect(deletedMovie.deletedAt).toBeDefined();
+      expect(deletedMovie.deletedAt).not.toBeNull();
+      const response = await request(app.getHttpServer())
+        .post('/movies')
+        .set('Authorization', `Bearer ${authTokenAdmin}`)
+        .send({
+          title: 'A New Hope',
+          director: 'George Lucas',
+          releaseDate: '1977-05-25',
+          opening: 'Opening Modified...',
+          producer: 'Gary Kurtz, Rick McCallum',
+        })
+        .expect(409);
+
+      expect(response.body).toEqual({
+        statusCode: 409,
+        error: 'Conflict',
+        message: 'Key (title, director)=(A New Hope, George Lucas) already exists.',
+      });
+    });
+    it('should return 400 if invalid data is provided', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/movies')
+        .set('Authorization', `Bearer ${authTokenAdmin}`)
+        .send({
+          director: 'George Lucas',
+          releaseDate: '1977-05-25',
+          opening: 'Opening Modified...',
+          producer: 'Gary Kurtz, Rick McCallum',
+        })
+        .expect(400);
+
+      expect(response.body).toHaveProperty('statusCode', 400);
+      expect(response.body).toHaveProperty('error', 'Bad Request');
+    });
+    it('should return 401 if user is not authenticated', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/movies')
+        .send({
+          title: 'A New Hope',
+          director: 'George Lucas',
+          releaseDate: '1977-05-25',
+          opening: 'Opening Modified...',
+          producer: 'Gary Kurtz, Rick McCallum',
+        })
+        .expect(401);
+
+      expect(response.body).toEqual({
+        statusCode: 401,
+        message: 'Unauthorized',
+      });
+    });
+    it('should return 403 if user is not an admin', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/movies')
+        .set('Authorization', `Bearer ${authTokenUser}`)
+        .send({
+          title: 'A New Hope',
+          director: 'George Lucas',
+          releaseDate: '1977-05-25',
+          opening: 'Opening Modified...',
+          producer: 'Gary Kurtz, Rick McCallum',
+        })
+        .expect(403);
+
+      expect(response.body).toEqual({
+        statusCode: 403,
+        error: 'Forbidden',
+        message: 'Forbidden',
+      });
+    });
+  });
 });

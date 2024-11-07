@@ -26,7 +26,7 @@ describe('UserRoleGuard', () => {
   };
 
   it('should return true if no roles are required', () => {
-    const context = mockExecutionContext(); // No roles required
+    const context = mockExecutionContext();
     expect(userRoleGuard.canActivate(context)).toBe(true);
   });
 

@@ -2,7 +2,12 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { MoviesController } from './movies.controller';
 import { MoviesService } from './movies.service';
 import { MovieSyncService } from './services/movie-sync.service';
-import { InternalServerErrorException, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
+import {
+  ConflictException,
+  InternalServerErrorException,
+  NotFoundException,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import { PassportModule } from '@nestjs/passport';
 
 describe('MoviesController', () => {
@@ -29,6 +34,7 @@ describe('MoviesController', () => {
             restore: jest.fn(),
             findAll: jest.fn(),
             count: jest.fn(),
+            create: jest.fn(),
           },
         },
         ]
@@ -217,6 +223,60 @@ describe('MoviesController', () => {
       await expect(controller.findAll({
         limit: 10,
         offset: 0,
+      })).rejects.toThrow(InternalServerErrorException);
+    });
+  });
+  describe('create', () => {
+    it('should call create method of MoviesService', async () => {
+      const createSpy = jest.spyOn(moviesService, 'create').mockResolvedValue({
+        id: '2d6a6b00-170d-4980-bad6-e884a37f5d71',
+        title: 'A New Hope',
+        director: 'George Lucas',
+        releaseDate: '1977-05-25',
+        opening: 'Opening Modified...',
+        producer: 'Gary Kurtz, Rick McCallum',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        deletedAt: null,
+      });
+
+      await controller.create({
+        title: 'A New Hope',
+        director: 'George Lucas',
+        releaseDate: '1977-05-25',
+        opening: 'Opening Modified...',
+        producer: 'Gary Kurtz, Rick McCallum',
+      });
+
+      expect(createSpy).toHaveBeenCalledWith({
+        title: 'A New Hope',
+        director: 'George Lucas',
+        releaseDate: '1977-05-25',
+        opening: 'Opening Modified...',
+        producer: 'Gary Kurtz, Rick McCallum',
+      });
+    });
+
+    it('should return ConflictException if movie already exists', async () => {
+      jest.spyOn(moviesService, 'create').mockRejectedValue(new ConflictException('Movie already exists'));
+
+      await expect(controller.create({
+        title: 'A New Hope',
+        director: 'George Lucas',
+        releaseDate: '1977-05-25',
+        opening: 'Opening Modified...',
+        producer: 'Gary Kurtz, Rick McCallum',
+      })).rejects.toThrow(ConflictException);
+    });
+    it('should return InternalServerErrorException if error occurs', async () => {
+      jest.spyOn(moviesService, 'create').mockRejectedValue(new InternalServerErrorException('Error creating movie'));
+
+      await expect(controller.create({
+        title: 'A New Hope',
+        director: 'George Lucas',
+        releaseDate: '1977-05-25',
+        opening: 'Opening Modified...',
+        producer: 'Gary Kurtz, Rick McCallum',
       })).rejects.toThrow(InternalServerErrorException);
     });
   });

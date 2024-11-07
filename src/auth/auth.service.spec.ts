@@ -130,11 +130,6 @@ describe('AuthService', () => {
         roles: [ValidRoles.ADMIN, ValidRoles.USER],
       };
 
-      // service throw ConflictException
-      // if (exception.code === '23505') {
-      //       throw new ConflictException('User already exists: ' + exception.detail);
-      //     }
-
       mockUserRepository.save.mockRejectedValue(
         mockPostgresDuplicateDataError,
       );

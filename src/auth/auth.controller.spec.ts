@@ -52,7 +52,6 @@ describe('AuthController', () => {
         roles: [ValidRoles.ADMIN, ValidRoles.USER],
       };
 
-      // service throw ConflictException
       mockAuthService.register.mockRejectedValue(
         new ConflictException('User already exists'),
       );
@@ -67,7 +66,6 @@ describe('AuthController', () => {
         fullName: 'User Name',
       };
 
-      // service throw ConflictException
       mockAuthService.register.mockRejectedValue(
         new BadRequestException('Invalid data'),
       );
@@ -83,7 +81,6 @@ describe('AuthController', () => {
         roles: ['banana'],
       };
 
-      // service throw ConflictException
       mockAuthService.register.mockRejectedValue(
         new BadRequestException('Invalid data'),
       );
@@ -110,7 +107,6 @@ describe('AuthController', () => {
           password: 'User123',
         };
 
-        // service throw UnauthorizedException
         mockAuthService.login.mockRejectedValue(
           new UnauthorizedException('Invalid email or password'),
         );
@@ -124,7 +120,6 @@ describe('AuthController', () => {
           password: 'User123',
         };
 
-        // service throw UnauthorizedException
         mockAuthService.login.mockRejectedValue(
           new UnauthorizedException('Invalid email or password'),
         );
@@ -138,7 +133,6 @@ describe('AuthController', () => {
           password: 'User123',
         };
 
-        // service throw UnauthorizedException
         mockAuthService.login.mockResolvedValue({
           id: '2d6a6b00-170d-4980-bad6-e884a37f5d71',
           email: 'user@example.com',
