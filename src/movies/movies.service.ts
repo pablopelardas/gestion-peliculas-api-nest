@@ -88,8 +88,18 @@ export class MoviesService {
     return `Movie with id ${id} restored successfully`;
   }
 
-  update(id: number, updateMovieDto: UpdateMovieDto) {
-    return `This action updates a #${id} movie`;
+  async update(id: string, updateMovieDto: UpdateMovieDto) {
+    const movie = await this.movieRepository.preload({
+      id,
+      ...updateMovieDto,
+    })
+    if (!movie) throw new BadRequestException('Movie not found');
+    try {
+      await this.movieRepository.save(movie);
+      return movie;
+    } catch (error) {
+      this.exceptionHandlerService.handleException(error);
+    }
   }
 
   async remove(id: string) {

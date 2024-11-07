@@ -73,8 +73,14 @@ export class MoviesController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateMovieDto: UpdateMovieDto) {
-    return this.moviesService.update(+id, updateMovieDto);
+  @Auth(ValidRoles.ADMIN)
+  @ApiOperation({summary: 'Update a movie'})
+  @ApiResponse({status: 200, description: 'Movie updated successfully'})
+  @ApiResponse({status: 400, description: 'Invalid data'})
+  @ApiResponse({status: 404, description: 'Movie not found'})
+  @ApiResponse({status: 401, description: 'Unauthorized'})
+  update(@Param('id', ParseUUIDPipe) id: string, @Body() updateMovieDto: UpdateMovieDto) {
+    return this.moviesService.update(id, updateMovieDto);
   }
 
   @Delete(':id')
