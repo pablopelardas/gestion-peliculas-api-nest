@@ -28,7 +28,7 @@ export class MovieSyncService {
       const movies: ApiMovie[] = response.data.results;
 
       for (const movie of movies) {
-        let movieEntity = await this.movieRepository.findOne({ where: { title: movie.title, director: movie.director } });
+        let movieEntity = await this.movieRepository.findOne({ where: { title: movie.title, director: movie.director }, withDeleted: true });
 
         if (!movieEntity) {
           movieEntity = this.movieRepository.create({

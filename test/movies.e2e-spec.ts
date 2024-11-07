@@ -147,6 +147,17 @@ describe('MoviesController (e2e)', () => {
       const movies = await movieRepository.find();
       expect(movies.length).toBeGreaterThan(0);
     });
+    it('should keep internal movies with new data', async () => {
+      const movieRepository = app.get<Repository<Movie>>(getRepositoryToken(Movie));
+      const movies = await movieRepository.find();
+      expect(movies.length).toBeGreaterThan(0);
+      await request(app.getHttpServer())
+        .post('/movies/sync')
+        .set('Authorization', `Bearer ${authTokenAdmin}`)
+
+      const moviesAfterSync = await movieRepository.find();
+      expect(moviesAfterSync.length).toBeGreaterThan(movies.length);
+    });
     it('should return 401 if user is not authenticated', async () => {
       const response = await request(app.getHttpServer())
         .post('/movies/sync')

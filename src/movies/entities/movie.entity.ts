@@ -35,7 +35,9 @@ export class Movie {
   })
   director: string;
 
-  @Column('text')
+  @Column('text', {
+    nullable: true,
+  })
   @ApiProperty({
     description: 'Movie opening',
     example: 'Inception is a science fiction film directed by Christopher Nolan and released in 2010.',
@@ -46,15 +48,17 @@ export class Movie {
     description: 'Movie producer',
     example: 'Warner Bros.',
   })
-  @Column('text')
+  @Column('text', {
+    nullable: true,
+  })
   producer: string;
 
+  @Column('text')
   @ApiProperty({
     description: 'Movie release date',
     example: '2010-01-01',
     required: true,
   })
-  @Column('text')
   releaseDate: string;
 
   @ApiProperty({

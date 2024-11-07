@@ -73,6 +73,7 @@ describe('MovieSyncService', () => {
       expect(mockHttpService.get).toHaveBeenCalledWith('https://swapi.dev/api/films/');
       expect(mockMovieRepository.findOne).toHaveBeenCalledWith({
         where: { title: 'A New Hope', director: 'George Lucas' },
+        withDeleted: true
       });
       expect(mockMovieRepository.create).toHaveBeenCalledWith({
         title: 'A New Hope',
@@ -124,6 +125,7 @@ describe('MovieSyncService', () => {
       expect(mockHttpService.get).toHaveBeenCalledWith('https://swapi.dev/api/films/');
       expect(mockMovieRepository.findOne).toHaveBeenCalledWith({
         where: { title: 'A New Hope', director: 'George Lucas' },
+        withDeleted: true
       });
       expect(mockMovieRepository.save).toHaveBeenCalledWith({
         id: '2d6a6b00-170d-4980-bad6-e884a37f5d71',
