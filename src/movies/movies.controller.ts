@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseUUIDPipe } from '@nestjs/common';
 import { MoviesService } from './movies.service';
 import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
@@ -24,9 +24,31 @@ export class MoviesController {
     return this.moviesService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.moviesService.findOne(+id);
+  @Get('deleted')
+  @Auth(ValidRoles.ADMIN)
+  @ApiOperation({summary: 'List all deleted movies'})
+  @ApiResponse({status: 200, description: 'List of deleted movies'})
+  listDeleted() {
+    return this.moviesService.listDeleted();
+  }
+
+  @Patch('restore/:id')
+  @Auth(ValidRoles.ADMIN)
+  @ApiOperation({summary: 'Restore a deleted movie (ONLY FOR ADMIN)'})
+  @ApiResponse({status: 200, description: 'Movie restored successfully'})
+  @ApiResponse({status: 401, description: 'Unauthorized'})
+  @ApiResponse({status: 404, description: 'Movie not found'})
+  restore(@Param('id', ParseUUIDPipe) id: string) {
+    return this.moviesService.restore(id);
+  }
+
+  @Get(':query')
+  @Auth(ValidRoles.USER)
+  @ApiOperation({summary: 'Find a movie by title or id'})
+  @ApiResponse({status: 200, description: 'Movie found successfully'})
+  @ApiResponse({status: 404, description: 'Movie not found'})
+  findOne(@Param('query') query: string) {
+    return this.moviesService.findOne(query);
   }
 
   @Patch(':id')
@@ -35,8 +57,12 @@ export class MoviesController {
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.moviesService.remove(+id);
+  @Auth(ValidRoles.ADMIN)
+  @ApiOperation({summary: 'Delete a movie (ONLY FOR ADMIN)'})
+  @ApiResponse({status: 200, description: 'Movie deleted successfully'})
+  @ApiResponse({status: 401, description: 'Unauthorized'})
+  remove(@Param('id', ParseUUIDPipe) id: string) {
+    return this.moviesService.remove(id);
   }
 
   @Post('sync')
