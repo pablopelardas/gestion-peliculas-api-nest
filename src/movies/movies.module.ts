@@ -7,11 +7,13 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { HttpModule } from '@nestjs/axios';
 import { AuthModule } from '../auth/auth.module';
 import { MovieSyncService } from './services/movie-sync.service';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   controllers: [MoviesController],
   providers: [MoviesService, MovieSyncService],
   imports: [
+    ConfigModule,
     ScheduleModule.forRoot(),
     HttpModule,
     TypeOrmModule.forFeature([Movie]),

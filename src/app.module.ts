@@ -7,6 +7,7 @@ import { JoiValidation } from './config/joi-validation.config';
 import { AuthModule } from './auth/auth.module';
 import { MoviesModule } from './movies/movies.module';
 import { SeedModule } from './seed/seed.module';
+import { CommonModule } from './common/common.module';
 
 
 @Module({
@@ -27,7 +28,8 @@ import { SeedModule } from './seed/seed.module';
     }),
     AuthModule,
     MoviesModule,
-    SeedModule
+    SeedModule,
+    CommonModule
   ],
 })
 export class AppModule {}

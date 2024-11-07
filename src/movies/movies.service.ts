@@ -1,33 +1,58 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Movie } from './entities/movie.entity';
 import { IsNull, Not, Repository } from 'typeorm';
-import {validate as isUUID} from 'uuid';
+import { validate as isUUID } from 'uuid';
+import { PaginationDto } from '../common/dto/pagination-dto';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class MoviesService {
-
+  private readonly DEFAULT_LIMIT: number;
   constructor(
     @InjectRepository(Movie)
     private readonly movieRepository: Repository<Movie>,
-  ) {}
+    private readonly configService: ConfigService,
+  ) {
+    this.DEFAULT_LIMIT = configService.getOrThrow<number>('defaultLimit');
+  }
 
   create(createMovieDto: CreateMovieDto) {
     return 'This action adds a new movie';
   }
 
-  findAll() {
-    return `This action returns all movies`;
+  async findAll(paginationDto: PaginationDto) {
+    try {
+      const { limit = this.DEFAULT_LIMIT, offset = 0 } = paginationDto;
+      const movies = await this.movieRepository.find({
+        take: limit,
+        skip: offset,
+      });
+      return { data: movies, total: await this.count(), limit, offset };
+    } catch (error) {
+      throw new InternalServerErrorException(error);
+    }
+  }
+
+  async count() {
+    return this.movieRepository.count();
   }
 
   async findOne(query: string) {
     if (!query) throw new BadRequestException('Query Term is required');
     let movie: Movie;
 
-    if (isUUID(query)) movie = await this.movieRepository.findOneBy({ id: query })
-    else movie = await this.movieRepository.findOne({ where: { title: query } });
+    if (isUUID(query))
+      movie = await this.movieRepository.findOneBy({ id: query });
+    else
+      movie = await this.movieRepository.findOne({ where: { title: query } });
 
     if (!movie) throw new NotFoundException('Movie not found');
 
@@ -61,7 +86,7 @@ export class MoviesService {
   }
 
   async remove(id: string) {
-      // soft delete
+    // soft delete
     const movie = await this.movieRepository.findOneBy({ id: id });
 
     if (!movie) throw new NotFoundException('Movie not found');
@@ -71,6 +96,5 @@ export class MoviesService {
     });
 
     return `Movie with id ${id} deleted successfully`;
-
   }
 }

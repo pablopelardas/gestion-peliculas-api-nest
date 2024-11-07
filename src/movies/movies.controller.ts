@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseUUIDPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseUUIDPipe, Query } from '@nestjs/common';
 import { MoviesService } from './movies.service';
 import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
@@ -6,6 +6,8 @@ import { ValidRoles } from '../auth/interfaces';
 import { Auth } from '../auth/decorators/auth.decorator';
 import { MovieSyncService } from './services/movie-sync.service';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { PaginationDto } from '../common/dto/pagination-dto';
+import { PaginatedDataResponse } from '../common/dto/paginated-data-response.dto';
 
 @Controller('movies')
 export class MoviesController {
@@ -20,8 +22,16 @@ export class MoviesController {
   }
 
   @Get()
-  findAll() {
-    return this.moviesService.findAll();
+  @ApiOperation({summary: 'Find all movies'})
+  @ApiResponse({status: 200, description: 'List of movies'})
+  async findAll(@Query() paginationDto: PaginationDto) {
+    const {
+      data,
+      limit,
+      offset,
+      total,
+    } = await this.moviesService.findAll(paginationDto);
+    return new PaginatedDataResponse(data, total, limit, offset);
   }
 
   @Get('deleted')
