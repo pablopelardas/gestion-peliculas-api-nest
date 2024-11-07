@@ -17,6 +17,13 @@ export class MoviesController {
   ) {}
 
   @Post()
+  @Auth(ValidRoles.ADMIN)
+  @ApiOperation({summary: 'Create a new movie'})
+  @ApiResponse({status: 201, description: 'Movie created successfully'})
+  @ApiResponse({status: 400, description: 'Invalid data'})
+  @ApiResponse({status: 409, description: 'Movie already exists'})
+  @ApiResponse({status: 401, description: 'Unauthorized'})
+  @ApiResponse({status: 403, description: 'Forbidden'})
   create(@Body() createMovieDto: CreateMovieDto) {
     return this.moviesService.create(createMovieDto);
   }
@@ -38,6 +45,8 @@ export class MoviesController {
   @Auth(ValidRoles.ADMIN)
   @ApiOperation({summary: 'List all deleted movies'})
   @ApiResponse({status: 200, description: 'List of deleted movies'})
+  @ApiResponse({status: 401, description: 'Unauthorized'})
+  @ApiResponse({status: 403, description: 'Forbidden'})
   listDeleted() {
     return this.moviesService.listDeleted();
   }
@@ -46,8 +55,9 @@ export class MoviesController {
   @Auth(ValidRoles.ADMIN)
   @ApiOperation({summary: 'Restore a deleted movie (ONLY FOR ADMIN)'})
   @ApiResponse({status: 200, description: 'Movie restored successfully'})
-  @ApiResponse({status: 401, description: 'Unauthorized'})
   @ApiResponse({status: 404, description: 'Movie not found'})
+  @ApiResponse({status: 401, description: 'Unauthorized'})
+  @ApiResponse({status: 403, description: 'Forbidden'})
   restore(@Param('id', ParseUUIDPipe) id: string) {
     return this.moviesService.restore(id);
   }
@@ -57,6 +67,7 @@ export class MoviesController {
   @ApiOperation({summary: 'Find a movie by title or id'})
   @ApiResponse({status: 200, description: 'Movie found successfully'})
   @ApiResponse({status: 404, description: 'Movie not found'})
+  @ApiResponse({status: 401, description: 'Unauthorized'})
   findOne(@Param('query') query: string) {
     return this.moviesService.findOne(query);
   }
@@ -71,6 +82,7 @@ export class MoviesController {
   @ApiOperation({summary: 'Delete a movie (ONLY FOR ADMIN)'})
   @ApiResponse({status: 200, description: 'Movie deleted successfully'})
   @ApiResponse({status: 401, description: 'Unauthorized'})
+  @ApiResponse({status: 403, description: 'Forbidden'})
   remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.moviesService.remove(id);
   }
@@ -80,6 +92,7 @@ export class MoviesController {
   @ApiOperation({summary: 'Sync movies with external API (ONLY FOR ADMIN)'})
   @ApiResponse({status: 200, description: 'Movies synced successfully'})
   @ApiResponse({status: 401, description: 'Unauthorized'})
+  @ApiResponse({status: 403, description: 'Forbidden'})
   @ApiResponse({status: 503, description: 'Service unavailable'})
   async syncMovies() {
     return this.movieSyncService.syncMovies();

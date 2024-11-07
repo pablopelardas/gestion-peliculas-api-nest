@@ -1,7 +1,16 @@
-import { Column, CreateDateColumn, DeleteDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  DeleteDateColumn,
+  Entity,
+  PrimaryGeneratedColumn,
+  Unique,
+  UpdateDateColumn,
+} from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 
 @Entity('movies')
+@Unique('UQ_TITLE_DIRECTOR',['title', 'director'])
 export class Movie {
   @PrimaryGeneratedColumn('uuid')
   @ApiProperty({

@@ -12,6 +12,7 @@ import { IsNull, Not, Repository } from 'typeorm';
 import { validate as isUUID } from 'uuid';
 import { PaginationDto } from '../common/dto/pagination-dto';
 import { ConfigService } from '@nestjs/config';
+import { ExceptionHandlerService } from '../common/services/exception-handler/exception-handler.service';
 
 @Injectable()
 export class MoviesService {
@@ -19,13 +20,19 @@ export class MoviesService {
   constructor(
     @InjectRepository(Movie)
     private readonly movieRepository: Repository<Movie>,
-    private readonly configService: ConfigService,
+    private readonly exceptionHandlerService: ExceptionHandlerService,
+    configService: ConfigService,
   ) {
     this.DEFAULT_LIMIT = configService.getOrThrow<number>('defaultLimit');
   }
 
-  create(createMovieDto: CreateMovieDto) {
-    return 'This action adds a new movie';
+  async create(createMovieDto: CreateMovieDto) {
+    try {
+      const movie = this.movieRepository.create(createMovieDto);
+      return await this.movieRepository.save(movie);
+    }catch(error){
+      this.exceptionHandlerService.handleException(error);
+    }
   }
 
   async findAll(paginationDto: PaginationDto) {
@@ -86,7 +93,6 @@ export class MoviesService {
   }
 
   async remove(id: string) {
-    // soft delete
     const movie = await this.movieRepository.findOneBy({ id: id });
 
     if (!movie) throw new NotFoundException('Movie not found');

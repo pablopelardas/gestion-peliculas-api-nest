@@ -8,6 +8,7 @@ import { HttpModule } from '@nestjs/axios';
 import { AuthModule } from '../auth/auth.module';
 import { MovieSyncService } from './services/movie-sync.service';
 import { ConfigModule } from '@nestjs/config';
+import { CommonModule } from '../common/common.module';
 
 @Module({
   controllers: [MoviesController],
@@ -17,7 +18,8 @@ import { ConfigModule } from '@nestjs/config';
     ScheduleModule.forRoot(),
     HttpModule,
     TypeOrmModule.forFeature([Movie]),
-    AuthModule
+    AuthModule,
+    CommonModule
   ],
 })
 export class MoviesModule {}
