@@ -92,7 +92,7 @@ describe('AuthController (e2e)', () => {
       expect(response.body).toEqual({
         statusCode: 409,
         error: 'Conflict',
-        message: 'User already exists: Key (email)=(user@example.com) already exists.',
+        message: 'Key (email)=(user@example.com) already exists.',
       });
     });
     it('should return 400 if invalid data is provided', async () => {

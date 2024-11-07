@@ -8,6 +8,7 @@ import { Role, User } from './entities';
 import { CreateUserDto } from './dto/create-user.dto';
 import { ValidRoles } from './interfaces';
 import { LoginUserDto } from './dto/login-user.dto';
+import { CommonModule } from '../common/common.module';
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -71,6 +72,7 @@ describe('AuthService', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
+      imports: [CommonModule],
       providers: [AuthService,
         {
           provide: getRepositoryToken(User),

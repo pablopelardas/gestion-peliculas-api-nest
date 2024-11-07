@@ -1,13 +1,13 @@
-import { BadRequestException, ConflictException, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { JwtService } from '@nestjs/jwt';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { Role, User } from './entities';
 import { CreateUserDto } from './dto/create-user.dto';
-import { ValidRoles } from './interfaces/valid-roles.interfaces';
-import { JwtPayload } from './interfaces/jwt-payload.interfaces';
+import { JwtPayload } from './interfaces';
 import { LoginUserDto } from './dto/login-user.dto';
+import { ExceptionHandlerService } from '../common/services/exception-handler/exception-handler.service';
 
 @Injectable()
 export class AuthService {
@@ -17,6 +17,7 @@ export class AuthService {
     @InjectRepository(Role)
     private readonly roleRepository: Repository<Role>,
     private readonly jwtService: JwtService,
+    private readonly exceptionHandlerService: ExceptionHandlerService,
   ){}
 
   async register(createUserDto: CreateUserDto) {
@@ -38,7 +39,7 @@ export class AuthService {
       try {
         await this.userRepository.save(user);
       } catch (error) {
-        this.handleException(error);
+        this.exceptionHandlerService.handleException(error);
       }
   }
 
@@ -65,13 +66,5 @@ export class AuthService {
 
   private getJwtToken(payload: JwtPayload) {
     return this.jwtService.sign(payload);
-  }
-
-  private handleException(exception: any) {
-    if (exception.code === '23505') {
-      throw new ConflictException('User already exists: ' + exception.detail);
-    }
-
-    throw exception;
   }
 }
