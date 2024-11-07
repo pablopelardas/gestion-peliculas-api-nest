@@ -4,6 +4,7 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { Movie } from './entities/movie.entity';
 import { Repository } from 'typeorm';
 import { NotFoundException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 
 describe('MoviesService', () => {
   let service: MoviesService;
@@ -19,8 +20,16 @@ describe('MoviesService', () => {
           find: jest.fn(),
           softDelete: jest.fn(),
           restore: jest.fn(),
-        },
-      }],
+          count: jest.fn(),
+        }
+      },
+        {
+          provide: ConfigService,
+          useValue: {
+            getOrThrow: jest.fn().mockReturnValue(10),
+          },
+        }
+      ],
     }).compile();
 
     service = module.get<MoviesService>(MoviesService);
@@ -138,6 +147,47 @@ describe('MoviesService', () => {
       const response = await service.listDeleted();
 
       expect(response.length).toBe(0);
+    });
+  });
+  describe('findAll', () => {
+    it('should return list of movies', async () => {
+      jest.spyOn(movieRepository, 'find').mockResolvedValue([{
+        id: '2d6a6b00-170d-4980-bad6-e884a37f5d71',
+        title: 'A New Hope',
+        director: 'George Lucas',
+        releaseDate: '1977-05-25',
+        opening: 'Opening Modified...',
+        producer: 'Gary Kurtz, Rick McCallum',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        deletedAt: null,
+      }]);
+
+      jest.spyOn(movieRepository, 'count').mockResolvedValue(1);
+
+      const response = await service.findAll({
+        limit: 10,
+        offset: 0,
+      });
+
+      expect(response.total).toBe(1);
+      expect(response.limit).toBe(10);
+      expect(response.offset).toBe(0);
+      expect(response.data[0].id).toBe('2d6a6b00-170d-4980-bad6-e884a37f5d71');
+    });
+    it('should return empty array if no movies found', async () => {
+      jest.spyOn(movieRepository, 'find').mockResolvedValue([]);
+      jest.spyOn(movieRepository, 'count').mockResolvedValue(0);
+
+      const response = await service.findAll({
+        limit: 10,
+        offset: 0,
+      });
+
+      expect(response.total).toBe(0);
+      expect(response.limit).toBe(10);
+      expect(response.offset).toBe(0);
+      expect(response.data.length).toBe(0);
     });
   });
 });

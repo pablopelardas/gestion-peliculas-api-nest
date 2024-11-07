@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { MoviesController } from './movies.controller';
 import { MoviesService } from './movies.service';
 import { MovieSyncService } from './services/movie-sync.service';
-import { NotFoundException, ServiceUnavailableException } from '@nestjs/common';
+import { InternalServerErrorException, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
 import { PassportModule } from '@nestjs/passport';
 
 describe('MoviesController', () => {
@@ -27,6 +27,8 @@ describe('MoviesController', () => {
             remove: jest.fn(),
             listDeleted: jest.fn(),
             restore: jest.fn(),
+            findAll: jest.fn(),
+            count: jest.fn(),
           },
         },
         ]
@@ -114,7 +116,6 @@ describe('MoviesController', () => {
       expect(response.length).toBe(0);
     });
   });
-
   describe('restore', () => {
     it('should call restore method of MoviesService', async () => {
       const restoreSpy = jest.spyOn(moviesService, 'restore').mockResolvedValue(null);
@@ -151,6 +152,72 @@ describe('MoviesController', () => {
       jest.spyOn(moviesService, 'findOne').mockRejectedValue(new NotFoundException('Movie not found'));
 
       await expect(controller.findOne('2d6a6b00-170d-4980-bad6-e884a37f5d71')).rejects.toThrow(NotFoundException);
+    });
+  });
+  describe('findAll', () => {
+    it('should call findAll method of MoviesService', async () => {
+      const findAllSpy = jest.spyOn(moviesService, 'findAll').mockResolvedValue({
+        data: [{
+          id: '2d6a6b00-170d-4980-bad6-e884a37f5d71',
+          title: 'A New Hope',
+          director: 'George Lucas',
+          releaseDate: '1977-05-25',
+          opening: 'Opening Modified...',
+          producer: 'Gary Kurtz, Rick McCallum',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          deletedAt: null,
+        }],
+        total: 1,
+        limit: 10,
+        offset: 0,
+      });
+
+      await controller.findAll({
+        limit: 10,
+        offset: 0,
+      });
+
+      expect(findAllSpy).toHaveBeenCalledWith({
+        limit: 10,
+        offset: 0,
+      });
+    });
+    it('should return PaginatedDataResponse if movies found', async () => {
+      jest.spyOn(moviesService, 'findAll').mockResolvedValue({
+        data: [{
+          id: '2d6a6b00-170d-4980-bad6-e884a37f5d71',
+          title: 'A New Hope',
+          director: 'George Lucas',
+          releaseDate: '1977-05-25',
+          opening: 'Opening Modified...',
+          producer: 'Gary Kurtz, Rick McCallum',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          deletedAt: null,
+        }],
+        total: 1,
+        limit: 10,
+        offset: 0,
+      });
+
+      const response = await controller.findAll({
+        limit: 10,
+        offset: 0,
+      });
+
+      expect(response.data.length).toBe(1);
+      expect(response.total).toBe(1);
+      expect(response.limit).toBe(10);
+      expect(response.offset).toBe(0);
+    });
+    it('should return InternalServerErrorException if error occurs', async () => {
+      jest.spyOn(moviesService, 'findAll').mockRejectedValue(new InternalServerErrorException('Error finding movies'));
+
+      await expect(controller.findAll({
+        limit: 10,
+        offset: 0,
+      })).rejects.toThrow(InternalServerErrorException);
     });
   });
 });

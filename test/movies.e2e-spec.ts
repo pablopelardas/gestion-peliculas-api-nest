@@ -137,7 +137,7 @@ describe('MoviesController (e2e)', () => {
     }
   });
 
-  xdescribe('/movies/sync (POST)', () => {
+  describe('/movies/sync (POST)', () => {
     it('should sync movies with external API', async () => {
       await request(app.getHttpServer())
         .post('/movies/sync')
@@ -170,7 +170,7 @@ describe('MoviesController (e2e)', () => {
       });
     });
   });
-  xdescribe('/movies/deleted (GET)', () => {
+  describe('/movies/deleted (GET)', () => {
     it('should list all deleted movies', async () => {
       await request(app.getHttpServer())
         .get('/movies/deleted')
@@ -203,7 +203,7 @@ describe('MoviesController (e2e)', () => {
       });
     });
   });
-  xdescribe('/movies/restore/:id (PATCH)', () => {
+  describe('/movies/restore/:id (PATCH)', () => {
     it('should restore a deleted movie', async () => {
 
       const movieRepository = app.get<Repository<Movie>>(getRepositoryToken(Movie));
@@ -257,7 +257,7 @@ describe('MoviesController (e2e)', () => {
       });
     });
   });
-  xdescribe('/movies/:query (GET)', () => {
+  describe('/movies/:query (GET)', () => {
     it('should find a movie by title', async () => {
       const response = await request(app.getHttpServer())
         .get('/movies/The%20Matrix')
@@ -383,5 +383,29 @@ describe('MoviesController (e2e)', () => {
         message: 'Forbidden',
       });
     });
+  });
+  describe('/movies (GET)', () => {
+    it('should find all movies', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/movies')
+        .set('Authorization', `Bearer ${authTokenAdmin}`)
+
+      expect(response.body).toHaveProperty('data');
+      expect(response.body).toHaveProperty('total');
+      expect(response.body).toHaveProperty('limit');
+      expect(response.body).toHaveProperty('offset');
+      expect(response.body.data.length).toBeGreaterThan(0);
+    });
+    it('should not get deleted movies', async () => {
+      const countWithDeleted = await movieRepository.count({
+        withDeleted: true,
+      });
+      const response = await request(app.getHttpServer())
+        .get('/movies')
+        .set('Authorization', `Bearer ${authTokenAdmin}`)
+
+      expect(response.body.data.length).not.toBeGreaterThan(countWithDeleted);
+    });
+
   });
 });
