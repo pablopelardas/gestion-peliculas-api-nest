@@ -1,0 +1,36 @@
+version: '3'
+
+services:
+  gpa-app:
+    depends_on:
+      - db
+    build:
+      context: .
+      dockerfile: dockerfile
+    image: gpa-docker
+    container_name: gpa-app
+    restart: always
+    ports:
+      - "${HOST_PORT}:${HOST_PORT}"
+    environment:
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      DB_HOST: ${DB_HOST}
+      DB_USER: ${DB_USER}
+      DB_PORT: ${DB_PORT}
+      HOST_API: ${HOST_API}
+      HOST_PORT: ${HOST_PORT}
+      JWT_SECRET: ${JWT_SECRET}
+      DEFAULT_LIMIT: ${DEFAULT_LIMIT}
+  db:
+    image: postgres:14.3
+    restart: always
+    container_name: postgres-gpa
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./postgres-prod:/var/lib/postgresql/data
