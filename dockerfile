@@ -10,4 +10,4 @@ COPY . /usr/src/app
 
 RUN npm run build
 
-CMD ["npm", "start", "start:prod"]
+CMD ["npm", "run", "start:prod"]
