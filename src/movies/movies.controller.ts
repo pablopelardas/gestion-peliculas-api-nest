@@ -5,6 +5,7 @@ import { UpdateMovieDto } from './dto/update-movie.dto';
 import { ValidRoles } from '../auth/interfaces';
 import { Auth } from '../auth/decorators/auth.decorator';
 import { MovieSyncService } from './services/movie-sync.service';
+import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 
 @Controller('movies')
 export class MoviesController {
@@ -40,6 +41,10 @@ export class MoviesController {
 
   @Post('sync')
   @Auth(ValidRoles.ADMIN)
+  @ApiOperation({summary: 'Sync movies with external API (ONLY FOR ADMIN)'})
+  @ApiResponse({status: 200, description: 'Movies synced successfully'})
+  @ApiResponse({status: 401, description: 'Unauthorized'})
+  @ApiResponse({status: 503, description: 'Service unavailable'})
   async syncMovies() {
     return this.movieSyncService.syncMovies();
   }

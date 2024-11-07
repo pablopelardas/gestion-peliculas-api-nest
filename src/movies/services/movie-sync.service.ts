@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, ServiceUnavailableException } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -52,6 +52,7 @@ export class MovieSyncService {
       this.logger.log('Movies synced with external API successfully');
     } catch (error) {
       this.logger.error('Error syncing movies with external API:', error);
+      throw new ServiceUnavailableException('Error syncing movies with external API');
     }
   }
 }
