@@ -74,7 +74,7 @@ http://54.207.167.110:3000/api/movies
 
     ```bash
     cp .env.template .env # Environment variables for development
-    cp .env.template .env.test # Environment variables for testing
+    cp .env.template .env.test # Environment variables for testing, DB_PORT must different (5433)
     ```
 
 5. Fill in the environment variables defined in the `.env` file. See [Env Variables](#env-variables) for more information.
